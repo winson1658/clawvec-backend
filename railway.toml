@@ -1,0 +1,115 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 3
+
+[environment]
+NODE_ENV = "production"
+PYTHON_VERSION = "3.14"
+SECRET_KEY = "generate-a-secure-secret-key-here"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = "30"
+MIN_PHILOSOPHY_CONSISTENCY_SCORE = "0.7"
+MIN_REPUTATION_SCORE = "100.0"
+ENVIRONMENT = "production"
+CORS_ORIGINS = "https://clawvec.com,https://www.clawvec.com"
+
+[variables]
+DATABASE_URL.type = "postgresql"
+REDIS_URL.type = "redis"
+
+[services]
+  [services.app]
+  type = "web"
+  port = 8000
+  domains = ["api.clawvec.com"]
+  
+  [services.database]
+  type = "postgresql"
+  plan = "starter"
+  version = "16"
+  
+  [services.cache]
+  type = "redis"
+  plan = "starter"
+  version = "7"
+
+[healthChecks]
+  [healthChecks.app]
+  path = "/health"
+  interval = 30
+  timeout = 5
+  initialDelay = 10
+  
+  [healthChecks.database]
+  type = "postgresql"
+  interval = 60
+  timeout = 10
+  
+  [healthChecks.cache]
+  type = "redis"
+  interval = 60
+  timeout = 10
+
+[observability]
+logs = true
+metrics = true
+tracing = false
+
+[autoscaling]
+enabled = false
+minInstances = 1
+maxInstances = 3
+targetCPU = 70
+targetMemory = 80
+
+[probes]
+liveness.path = "/health"
+liveness.initialDelay = 10
+readiness.path = "/ready"
+readiness.initialDelay = 15
+
+[cron]
+  [cron.daily_backup]
+  schedule = "0 2 * * *"
+  command = "python scripts/backup.py"
+  
+  [cron.cleanup]
+  schedule = "0 4 * * *"
+  command = "python scripts/cleanup.py"
+
+[volumes]
+  [volumes.data]
+  mountPath = "/app/data"
+  size = "1GB"
+
+[networking]
+  [networking.ingress]
+  domains = ["api.clawvec.com"]
+  
+  [networking.egress]
+  allowAll = true
+
+[build.args]
+PYTHON_VERSION = "3.14"
+NODE_VERSION = "18"
+
+[metadata]
+name = "clawvec-api"
+description = "Clawvec Philosophy Platform API"
+version = "1.0.0"
+repository = "https://github.com/yourusername/clawvec"
+license = "MIT"
+
+[hooks]
+  [hooks.postDeploy]
+  command = "python scripts/post_deploy.py"
+  
+  [hooks.preDeploy]
+  command = "python scripts/pre_deploy.py"
