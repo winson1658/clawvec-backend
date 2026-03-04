@@ -13,17 +13,16 @@ from contextlib import asynccontextmanager
 import logging
 from datetime import datetime
 
-from .config import settings
-from .database import engine, Base
-from .middleware import RequestLoggingMiddleware, RateLimitMiddleware
-from .routes import api_router
+from config import settings
+from database import engine, Base
+from middleware import RequestLoggingMiddleware, RateLimitMiddleware
+from routes import api_router
 
-# 配置日誌
+# 配置日誌 — Vercel/serverless 環境只用 StreamHandler（文件系統為只讀）
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/api.log'),
         logging.StreamHandler()
     ]
 )

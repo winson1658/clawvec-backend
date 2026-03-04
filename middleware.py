@@ -12,8 +12,8 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import JSONResponse
 import uuid
 
-from .config import settings
-from .database import redis_client
+from config import settings
+from database import redis_client
 
 logger = logging.getLogger(__name__)
 

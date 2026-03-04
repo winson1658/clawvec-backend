@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 import logging
 
-from .config import settings
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +124,10 @@ except Exception as e:
     redis_client = None
 
 # 導入所有模型以確保 SQLAlchemy 註冊它們
-from . import models  # noqa: F401
+try:
+    import models  # noqa: F401
+except ImportError:
+    pass
 
 # 導出
 __all__ = [
